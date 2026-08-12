@@ -2,6 +2,21 @@
 
 Next.js app on **Base Sepolia** (chain ID `84532`) with wagmi, viem, and Base Account. Read/write a Foundry `Counter`, with EIP-5792 batch increment when the wallet supports it.
 
+- **Repo (public):** https://github.com/philkraft1/BaseA
+- **Live demo:** https://basea-tau.vercel.app
+
+The demo UI is live. The Counter contract is **not deployed yet** (no Sepolia ETH on the deployer). Until `NEXT_PUBLIC_COUNTER_ADDRESS` is set, the page shows a “not deployed” notice. After you claim faucet ETH and deploy, redeploy Vercel with that env var.
+
+## Base funding (Weekly Rewards)
+
+This project is an early prototype. It does **not** qualify for Builder Grants, OP Retro Funding, or Base Batches. It **can** count toward [Weekly Rewards / Builder Score](https://www.builderscore.xyz/) after onchain deploy + public progress.
+
+1. Claim Base Sepolia ETH: [network faucets](https://docs.base.org/base-chain/network-information/network-faucets) (CDP, Alchemy, thirdweb, etc.)
+2. Deploy the Counter (`npm run contracts:deploy` or Foundry script below)
+3. Set `NEXT_PUBLIC_COUNTER_ADDRESS` on Vercel and redeploy
+4. Create a profile at [builderscore.xyz](https://www.builderscore.xyz/) (Talent Protocol) and share the demo + repo
+5. Keep building past this tutorial before applying to larger programs
+
 ## Stack
 
 - Next.js (App Router) + TypeScript + Tailwind
