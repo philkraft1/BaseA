@@ -65,7 +65,7 @@ export function Ledger() {
         {isLoading && <p className="text-sm text-zinc-500">Loading ledger…</p>}
         {isError && (
           <p className="text-sm text-red-600">
-            Could not load transfers. Public RPC may be rate-limited.
+            Could not load transfers. The RPC rejected the log query.
           </p>
         )}
         {data && data.rows.length === 0 && !isLoading && (

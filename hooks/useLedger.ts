@@ -21,6 +21,25 @@ const paidEvent = parseAbiItem(
   'event RequestPaid(uint256 indexed id, address indexed paidBy, uint256 amount)',
 )
 
+/** Public Base RPC rejects eth_getLogs spans over 10,000 blocks. */
+const LOG_RANGE_LIMIT = BigInt(10_000)
+
+async function getLogsInRange<T>(
+  fetchChunk: (fromBlock: bigint, toBlock: bigint) => Promise<T[]>,
+  fromBlock: bigint,
+  toBlock: bigint,
+): Promise<T[]> {
+  const all: T[] = []
+  for (let start = fromBlock; start <= toBlock; start += LOG_RANGE_LIMIT) {
+    const end =
+      start + LOG_RANGE_LIMIT - BigInt(1) > toBlock
+        ? toBlock
+        : start + LOG_RANGE_LIMIT - BigInt(1)
+    all.push(...(await fetchChunk(start, end)))
+  }
+  return all
+}
+
 export type LedgerRow = {
   kind: 'in' | 'out' | 'request' | 'paid'
   id?: string
@@ -52,20 +71,30 @@ export function useLedger() {
       const fromBlock = latest > lookback ? latest - lookback : BigInt(0)
 
       const [incoming, outgoing] = await Promise.all([
-        client.getLogs({
-          address: USDC_ADDRESS,
-          event: transferEvent,
-          args: { to: address },
+        getLogsInRange(
+          (start, end) =>
+            client.getLogs({
+              address: USDC_ADDRESS,
+              event: transferEvent,
+              args: { to: address },
+              fromBlock: start,
+              toBlock: end,
+            }),
           fromBlock,
-          toBlock: latest,
-        }),
-        client.getLogs({
-          address: USDC_ADDRESS,
-          event: transferEvent,
-          args: { from: address },
+          latest,
+        ),
+        getLogsInRange(
+          (start, end) =>
+            client.getLogs({
+              address: USDC_ADDRESS,
+              event: transferEvent,
+              args: { from: address },
+              fromBlock: start,
+              toBlock: end,
+            }),
           fromBlock,
-          toBlock: latest,
-        }),
+          latest,
+        ),
       ])
 
       const rows: LedgerRow[] = []
@@ -97,19 +126,29 @@ export function useLedger() {
 
       if (isPayRequestDeployed) {
         const [created, paid] = await Promise.all([
-          client.getLogs({
-            address: PAY_REQUEST_ADDRESS,
-            event: createdEvent,
-            args: { payee: address },
+          getLogsInRange(
+            (start, end) =>
+              client.getLogs({
+                address: PAY_REQUEST_ADDRESS,
+                event: createdEvent,
+                args: { payee: address },
+                fromBlock: start,
+                toBlock: end,
+              }),
             fromBlock,
-            toBlock: latest,
-          }),
-          client.getLogs({
-            address: PAY_REQUEST_ADDRESS,
-            event: paidEvent,
+            latest,
+          ),
+          getLogsInRange(
+            (start, end) =>
+              client.getLogs({
+                address: PAY_REQUEST_ADDRESS,
+                event: paidEvent,
+                fromBlock: start,
+                toBlock: end,
+              }),
             fromBlock,
-            toBlock: latest,
-          }),
+            latest,
+          ),
         ])
         for (const log of created) {
           rows.push({
