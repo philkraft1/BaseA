@@ -1,25 +1,25 @@
 /**
- * Deploy PayRequest to Base Sepolia with viem.
+ * Deploy PayRequest to Base mainnet with viem.
  * Usage (from repo root):
  *   $env:DEPLOYER_PRIVATE_KEY="0x..."
  *   node scripts/deploy-pay-request.mjs
  */
 import { createWalletClient, createPublicClient, http, formatEther } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { baseSepolia } from 'viem/chains'
+import { base } from 'viem/chains'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = resolve(__dirname, '..')
-const rpc = process.env.BASE_SEPOLIA_RPC_URL ?? 'https://sepolia.base.org'
+const rpc = process.env.BASE_RPC_URL ?? 'https://mainnet.base.org'
 const pk = process.env.DEPLOYER_PRIVATE_KEY
 
 if (!pk) {
   console.error('Set DEPLOYER_PRIVATE_KEY (hex) then re-run.')
   console.error(
-    'Fund the deployer on Base Sepolia first: https://docs.base.org/base-chain/network-information/network-faucets',
+    'Fund the deployer with ETH on Base first, then retry.',
   )
   process.exit(1)
 }
@@ -40,12 +40,12 @@ if (!bytecode || bytecode === '0x') {
 
 const account = privateKeyToAccount(pk.startsWith('0x') ? pk : `0x${pk}`)
 const publicClient = createPublicClient({
-  chain: baseSepolia,
+  chain: base,
   transport: http(rpc),
 })
 const walletClient = createWalletClient({
   account,
-  chain: baseSepolia,
+  chain: base,
   transport: http(rpc),
 })
 
@@ -53,7 +53,7 @@ const balance = await publicClient.getBalance({ address: account.address })
 console.log('Deployer:', account.address)
 console.log('Balance:', formatEther(balance), 'ETH')
 if (balance === 0n) {
-  console.error('Deployer has 0 ETH. Fund via a Base Sepolia faucet, then retry.')
+  console.error('Deployer has 0 ETH. Fund it on Base, then retry.')
   process.exit(1)
 }
 

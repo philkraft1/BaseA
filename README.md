@@ -4,7 +4,7 @@ Personal USDC cashflow for Base. Not a swap aggregator, not a memecoin launcher,
 
 - **Repo:** https://github.com/philkraft1/BaseA
 - **Live demo:** https://basea-tau.vercel.app
-- **Network (v1):** Base Sepolia (`84532`). Mainnet after Float works.
+- **Network:** Base (`8453`)
 
 ## Why this exists
 
@@ -21,7 +21,7 @@ Base MCP plugins already cover protocol actions (Uniswap, Morpho, Moonwell, YO, 
 2. **Ledger** — USDC balance and recent in/out.
 3. **Request** — create an onchain invoice; share `/pay/{id}`.
 4. **Pay** — send USDC to an address or basename, or open a request link (approve + pay in one batch on smart wallets).
-5. **Idle** — compare Base mainnet USDC venues; deposit on their site.
+5. **Idle** — compare Base USDC venues; deposit on their site.
 6. **Approvals** — revoke leftover allowances.
 
 ## Contract
@@ -31,7 +31,7 @@ Base MCP plugins already cover protocol actions (Uniswap, Morpho, Moonwell, YO, 
 ```bash
 npm run contracts:build
 npm run contracts:test
-# needs Sepolia ETH + DEPLOYER_PRIVATE_KEY
+# needs Base ETH + DEPLOYER_PRIVATE_KEY
 npm run contracts:deploy
 ```
 
@@ -39,11 +39,11 @@ Set on Vercel / `.env.local`:
 
 ```bash
 NEXT_PUBLIC_PAY_REQUEST_ADDRESS=0x...
-NEXT_PUBLIC_USDC_ADDRESS=0x036CbD53842c5426634e7929541eC2318f3dCF7e
-NEXT_PUBLIC_RPC_URL=https://sepolia.base.org
+NEXT_PUBLIC_USDC_ADDRESS=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+NEXT_PUBLIC_RPC_URL=https://mainnet.base.org
 ```
 
-Circle test USDC (Base Sepolia): `0x036CbD53842c5426634e7929541eC2318f3dCF7e`. Faucet: [Circle](https://faucet.circle.com/) (select Base Sepolia).
+Native USDC on Base: `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`.
 
 ## Setup
 
@@ -62,13 +62,7 @@ npm run dev
 | USDC volume through `pay()` | Economic activity |
 | Approval revokes | Safety hygiene |
 
-Weekly Rewards: public repo + demo + onchain txs. Builder Grants: **mainnet**, real volume — not this tutorial-era tally. Still not Base Batches until there is a business.
-
-## Promote to Base mainnet
-
-1. Redeploy `PayRequest` to Base (`8453`).
-2. In [`config/network.ts`](config/network.ts): `base` instead of `baseSepolia`, USDC `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`, Basescan URLs, dedicated RPC.
-3. Set `NEXT_PUBLIC_PAY_REQUEST_ADDRESS` and redeploy Vercel.
+Weekly Rewards: public repo + demo + onchain txs. Builder Grants: **mainnet**, real volume. Still not Base Batches until there is a business.
 
 ## Stack
 
