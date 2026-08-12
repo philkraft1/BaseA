@@ -9,7 +9,7 @@
     "lint": "eslint",
     "contracts:build": "cd contracts && forge build",
     "contracts:test": "cd contracts && forge test",
-    "contracts:deploy": "node scripts/deploy-counter.mjs"
+    "contracts:deploy": "node scripts/deploy-pay-request.mjs"
   },
   "dependencies": {
     "@base-org/account": "^2.5.9",

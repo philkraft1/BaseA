@@ -1,8 +1,8 @@
 /**
- * Deploy Counter to Base Sepolia with viem.
+ * Deploy PayRequest to Base Sepolia with viem.
  * Usage (from repo root):
- *   set DEPLOYER_PRIVATE_KEY=0x...
- *   node scripts/deploy-counter.mjs
+ *   $env:DEPLOYER_PRIVATE_KEY="0x..."
+ *   node scripts/deploy-pay-request.mjs
  */
 import { createWalletClient, createPublicClient, http, formatEther } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
@@ -18,16 +18,15 @@ const pk = process.env.DEPLOYER_PRIVATE_KEY
 
 if (!pk) {
   console.error('Set DEPLOYER_PRIVATE_KEY (hex) then re-run.')
-  console.error('Fund the deployer on Base Sepolia first: https://docs.base.org/base-chain/network-information/network-faucets')
+  console.error(
+    'Fund the deployer on Base Sepolia first: https://docs.base.org/base-chain/network-information/network-faucets',
+  )
   process.exit(1)
 }
 
-const artifactPath = resolve(
-  root,
-  'contracts/out/Counter.sol/Counter.json',
-)
+const artifactPath = resolve(root, 'contracts/out/PayRequest.sol/PayRequest.json')
 if (!existsSync(artifactPath)) {
-  console.error('Missing artifact. Run: cd contracts && forge build')
+  console.error('Missing artifact. Run: npm run contracts:build')
   process.exit(1)
 }
 
@@ -40,7 +39,10 @@ if (!bytecode || bytecode === '0x') {
 }
 
 const account = privateKeyToAccount(pk.startsWith('0x') ? pk : `0x${pk}`)
-const publicClient = createPublicClient({ chain: baseSepolia, transport: http(rpc) })
+const publicClient = createPublicClient({
+  chain: baseSepolia,
+  transport: http(rpc),
+})
 const walletClient = createWalletClient({
   account,
   chain: baseSepolia,
@@ -63,16 +65,19 @@ const hash = await walletClient.deployContract({
 console.log('Tx:', hash)
 const receipt = await publicClient.waitForTransactionReceipt({ hash })
 const address = receipt.contractAddress
-console.log('Counter:', address)
+console.log('PayRequest:', address)
 
 const envPath = resolve(root, '.env.local')
-const line = `NEXT_PUBLIC_COUNTER_ADDRESS=${address}\n`
+const line = `NEXT_PUBLIC_PAY_REQUEST_ADDRESS=${address}\n`
 if (existsSync(envPath)) {
   const prev = readFileSync(envPath, 'utf8')
-  if (prev.includes('NEXT_PUBLIC_COUNTER_ADDRESS=')) {
+  if (prev.includes('NEXT_PUBLIC_PAY_REQUEST_ADDRESS=')) {
     writeFileSync(
       envPath,
-      prev.replace(/NEXT_PUBLIC_COUNTER_ADDRESS=.*/g, `NEXT_PUBLIC_COUNTER_ADDRESS=${address}`),
+      prev.replace(
+        /NEXT_PUBLIC_PAY_REQUEST_ADDRESS=.*/g,
+        `NEXT_PUBLIC_PAY_REQUEST_ADDRESS=${address}`,
+      ),
     )
   } else {
     writeFileSync(envPath, prev + (prev.endsWith('\n') ? '' : '\n') + line)

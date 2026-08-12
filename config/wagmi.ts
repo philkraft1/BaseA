@@ -7,7 +7,7 @@ export const config = createConfig({
   connectors: [
     injected(),
     baseAccount({
-      appName: 'BaseA',
+      appName: 'Float',
     }),
   ],
   storage: createStorage({ storage: cookieStorage }),
