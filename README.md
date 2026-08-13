@@ -2,7 +2,7 @@
 
 Personal USDC cashflow for Base. Not a swap aggregator, not a memecoin launcher, not a merchant checkout clone.
 
-- **Repo:** https://github.com/philkraft1/BaseA
+- **Repo:** https://github.com/philkraft1/Float
 - **Live demo:** https://basea-tau.vercel.app
 - **Network:** Base (`8453`)
 
