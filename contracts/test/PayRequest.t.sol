@@ -12,8 +12,8 @@ contract PayRequestTest is Test {
     address internal payer = address(0xB0B);
 
     function setUp() public {
-        payRequest = new PayRequest();
         usdc = new MockERC20();
+        payRequest = new PayRequest(address(usdc));
         usdc.mint(payer, 1_000e6);
     }
 
@@ -73,5 +73,24 @@ contract PayRequestTest is Test {
         vm.prank(payee);
         vm.expectRevert(PayRequest.InvalidAmount.selector);
         payRequest.createRequest(payer, address(usdc), 0, "zero");
+    }
+
+    function test_RevertWrongToken() public {
+        MockERC20 other = new MockERC20();
+        vm.prank(payee);
+        vm.expectRevert(PayRequest.InvalidToken.selector);
+        payRequest.createRequest(payer, address(other), 1e6, "bad token");
+    }
+
+    function test_RevertMemoTooLong() public {
+        string memory longMemo = new string(257);
+        vm.prank(payee);
+        vm.expectRevert(PayRequest.MemoTooLong.selector);
+        payRequest.createRequest(payer, address(usdc), 1e6, longMemo);
+    }
+
+    function test_RevertZeroUsdcConstructor() public {
+        vm.expectRevert(PayRequest.InvalidToken.selector);
+        new PayRequest(address(0));
     }
 }

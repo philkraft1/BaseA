@@ -5,9 +5,11 @@ interface IERC20 {
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
 }
 
-/// @title PayRequest — USDC (or any ERC-20) request-to-pay on Base
-/// @notice Payee creates a request; payer approves the token then calls pay().
+/// @title PayRequest — USDC request-to-pay on Base
+/// @notice Payee creates a request; payer approves USDC then calls pay().
 contract PayRequest {
+    uint256 public constant MAX_MEMO_BYTES = 256;
+
     struct Request {
         address payee;
         address payer;
@@ -18,8 +20,10 @@ contract PayRequest {
         address paidBy;
     }
 
+    address public immutable usdc;
     uint256 public nextId;
     mapping(uint256 => Request) public requests;
+    uint256 private locked = 1;
 
     event RequestCreated(
         uint256 indexed id,
@@ -37,6 +41,20 @@ contract PayRequest {
     error AlreadyPaid();
     error NotAuthorizedPayer();
     error TransferFailed();
+    error MemoTooLong();
+    error Reentrant();
+
+    constructor(address usdc_) {
+        if (usdc_ == address(0)) revert InvalidToken();
+        usdc = usdc_;
+    }
+
+    modifier nonReentrant() {
+        if (locked == 2) revert Reentrant();
+        locked = 2;
+        _;
+        locked = 1;
+    }
 
     /// @param payer Address allowed to pay, or address(0) for anyone.
     function createRequest(address payer, address token, uint256 amount, string calldata memo)
@@ -44,7 +62,8 @@ contract PayRequest {
         returns (uint256 id)
     {
         if (amount == 0) revert InvalidAmount();
-        if (token == address(0)) revert InvalidToken();
+        if (token != usdc) revert InvalidToken();
+        if (bytes(memo).length > MAX_MEMO_BYTES) revert MemoTooLong();
 
         id = nextId++;
         requests[id] = Request({
@@ -60,7 +79,7 @@ contract PayRequest {
         emit RequestCreated(id, msg.sender, payer, token, amount, memo);
     }
 
-    function pay(uint256 id) external {
+    function pay(uint256 id) external nonReentrant {
         Request storage req = requests[id];
         if (req.payee == address(0)) revert UnknownRequest();
         if (req.paid) revert AlreadyPaid();
@@ -69,13 +88,21 @@ contract PayRequest {
         req.paid = true;
         req.paidBy = msg.sender;
 
-        bool ok = IERC20(req.token).transferFrom(msg.sender, req.payee, req.amount);
-        if (!ok) revert TransferFailed();
+        _safeTransferFrom(req.token, msg.sender, req.payee, req.amount);
 
         emit RequestPaid(id, msg.sender, req.amount);
     }
 
     function getRequest(uint256 id) external view returns (Request memory) {
         return requests[id];
+    }
+
+    function _safeTransferFrom(address token, address from, address to, uint256 amount) internal {
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, amount)
+        );
+        if (!success || (data.length != 0 && !abi.decode(data, (bool)))) {
+            revert TransferFailed();
+        }
     }
 }

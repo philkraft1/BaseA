@@ -15,6 +15,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = resolve(__dirname, '..')
 const rpc = process.env.BASE_RPC_URL ?? 'https://mainnet.base.org'
 const pk = process.env.DEPLOYER_PRIVATE_KEY
+const usdc =
+  process.env.NEXT_PUBLIC_USDC_ADDRESS ??
+  '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
 
 if (!pk) {
   console.error('Set DEPLOYER_PRIVATE_KEY (hex) then re-run.')
@@ -51,6 +54,7 @@ const walletClient = createWalletClient({
 
 const balance = await publicClient.getBalance({ address: account.address })
 console.log('Deployer:', account.address)
+console.log('USDC:', usdc)
 console.log('Balance:', formatEther(balance), 'ETH')
 if (balance === 0n) {
   console.error('Deployer has 0 ETH. Fund it on Base, then retry.')
@@ -60,7 +64,7 @@ if (balance === 0n) {
 const hash = await walletClient.deployContract({
   abi,
   bytecode,
-  args: [],
+  args: [usdc],
 })
 console.log('Tx:', hash)
 const receipt = await publicClient.waitForTransactionReceipt({ hash })

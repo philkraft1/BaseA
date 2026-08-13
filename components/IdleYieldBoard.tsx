@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import type { YieldRow } from '@/lib/yield'
+import { safeHttpsHref } from '@/lib/tx-guard'
 
 export function IdleYieldBoard() {
   const { data, isLoading, isError } = useQuery({
@@ -49,14 +50,18 @@ export function IdleYieldBoard() {
                 <td className="px-4 py-3 font-mono">{row.apy ?? '—'}</td>
                 <td className="px-4 py-3 font-mono">{row.tvlUsd ?? '—'}</td>
                 <td className="px-4 py-3">
-                  <a
-                    href={row.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sky-700 underline dark:text-sky-400"
-                  >
-                    Open
-                  </a>
+                  {safeHttpsHref(row.href) ? (
+                    <a
+                      href={safeHttpsHref(row.href)!}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sky-700 underline dark:text-sky-400"
+                    >
+                      Open
+                    </a>
+                  ) : (
+                    <span className="text-zinc-400">—</span>
+                  )}
                 </td>
               </tr>
             ))}

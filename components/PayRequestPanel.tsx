@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
-import { encodeFunctionData, maxUint256 } from 'viem'
+import { useEffect, useState } from 'react'
+import { encodeFunctionData } from 'viem'
 import {
   useAccount,
   useChainId,
+  usePublicClient,
   useReadContract,
   useSendCalls,
   useSwitchChain,
@@ -12,6 +13,7 @@ import {
   useWaitForTransactionReceipt,
   useWriteContract,
 } from 'wagmi'
+import { TxConfirm } from '@/components/TxConfirm'
 import { APP_CHAIN_ID, USDC_ADDRESS, appChain } from '@/config/network'
 import {
   PAY_REQUEST_ADDRESS,
@@ -21,6 +23,11 @@ import {
 } from '@/config/pay-request'
 import { useWalletCapabilities } from '@/hooks/useWalletCapabilities'
 import { formatUsdc, shortAddress } from '@/lib/format'
+import {
+  checksumAddress,
+  isNativeUsdc,
+  simulateErrorMessage,
+} from '@/lib/tx-guard'
 
 type RequestTuple = {
   payee: `0x${string}`
@@ -37,6 +44,10 @@ export function PayRequestPanel({ id }: { id: bigint }) {
   const chainId = useChainId()
   const { switchChain, isPending: isSwitching } = useSwitchChain()
   const { supportsBatching } = useWalletCapabilities()
+  const client = usePublicClient({ chainId: APP_CHAIN_ID })
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [simulating, setSimulating] = useState(false)
+  const [simError, setSimError] = useState<string | null>(null)
 
   const { data, isLoading, isError, refetch } = useReadContract({
     address: PAY_REQUEST_ADDRESS,
@@ -87,6 +98,13 @@ export function PayRequestPanel({ id }: { id: bigint }) {
   if (isError || !req || req.payee === '0x0000000000000000000000000000000000000000') {
     return <p className="text-sm text-red-600">Request not found.</p>
   }
+  if (!isNativeUsdc(req.token)) {
+    return (
+      <p className="text-sm text-red-600">
+        This request is not for native USDC. Float will not pay it.
+      </p>
+    )
+  }
 
   const needsApproval = (allowance ?? BigInt(0)) < req.amount
   const authorized =
@@ -117,7 +135,7 @@ export function PayRequestPanel({ id }: { id: bigint }) {
     const approveData = encodeFunctionData({
       abi: erc20Abi,
       functionName: 'approve',
-      args: [PAY_REQUEST_ADDRESS, maxUint256],
+      args: [PAY_REQUEST_ADDRESS, req!.amount],
     })
     const payData = encodeFunctionData({
       abi: payRequestAbi,
@@ -131,6 +149,41 @@ export function PayRequestPanel({ id }: { id: bigint }) {
         { to: PAY_REQUEST_ADDRESS, data: payData },
       ],
     })
+  }
+
+  async function onConfirm() {
+    if (!client || !address || !req) return
+    setSimulating(true)
+    setSimError(null)
+    try {
+      if (needsApproval) {
+        await client.simulateContract({
+          address: USDC_ADDRESS,
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [PAY_REQUEST_ADDRESS, req.amount],
+          account: address,
+          chain: appChain,
+        })
+      } else {
+        await client.simulateContract({
+          address: PAY_REQUEST_ADDRESS,
+          abi: payRequestAbi,
+          functionName: 'pay',
+          args: [id],
+          account: address,
+          chain: appChain,
+        })
+      }
+    } catch (err) {
+      setSimError(simulateErrorMessage(err))
+      setSimulating(false)
+      return
+    }
+    setSimulating(false)
+    setConfirmOpen(false)
+    if (supportsBatching) payBatched()
+    else paySequential()
   }
 
   return (
@@ -165,7 +218,10 @@ export function PayRequestPanel({ id }: { id: bigint }) {
           type="button"
           className="mt-4 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
           disabled={isWritePending || isConfirming || isCallsPending || isCallsConfirming}
-          onClick={() => (supportsBatching ? payBatched() : paySequential())}
+          onClick={() => {
+            setSimError(null)
+            setConfirmOpen(true)
+          }}
         >
           {isWritePending || isCallsPending
             ? 'Confirm in wallet…'
@@ -183,6 +239,21 @@ export function PayRequestPanel({ id }: { id: bigint }) {
           {(writeError ?? callsError)?.message}
         </p>
       )}
+      <TxConfirm
+        open={confirmOpen}
+        title="Pay USDC request"
+        lines={[
+          { label: 'Contract', value: 'PayRequest' },
+          { label: 'Spender', value: checksumAddress(PAY_REQUEST_ADDRESS) },
+          { label: 'Payee', value: checksumAddress(req.payee) },
+          { label: 'Amount', value: `${formatUsdc(req.amount)} USDC` },
+          { label: 'Allowance', value: 'Exact amount only' },
+        ]}
+        pending={simulating}
+        error={simError}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={onConfirm}
+      />
     </div>
   )
 }
