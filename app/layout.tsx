@@ -18,6 +18,18 @@ export const metadata: Metadata = {
   title: 'Float — USDC on Base',
   description: 'Request, pay, and park USDC on Base',
   icons: { icon: '/float.svg' },
+  metadataBase: new URL('https://basea-tau.vercel.app'),
+  openGraph: {
+    title: 'Float — USDC on Base',
+    description: 'Request, pay, and park USDC on Base',
+    images: [{ url: '/og.png', width: 1280, height: 640, alt: 'Float — request, pay, and park USDC on Base' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Float — USDC on Base',
+    description: 'Request, pay, and park USDC on Base',
+    images: ['/og.png'],
+  },
 }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
