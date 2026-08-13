@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4fafb;
+  --foreground: #0f172a;
 }
 
 @theme inline {
@@ -14,13 +14,31 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0b1214;
+    --foreground: #e2e8f0;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer components {
+  .float-card {
+    @apply rounded-2xl border-2 border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-950;
+  }
+
+  .float-field {
+    @apply mt-1 w-full rounded-lg border-2 border-zinc-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-cyan-600 dark:border-zinc-700 dark:bg-zinc-900 dark:focus:border-cyan-400;
+  }
+
+  .float-btn {
+    @apply rounded-lg bg-cyan-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-cyan-800 disabled:opacity-50 dark:bg-cyan-500 dark:text-zinc-950 dark:hover:bg-cyan-400;
+  }
+
+  .float-btn-ghost {
+    @apply rounded-lg border-2 border-zinc-200 px-3 py-1.5 text-sm transition hover:bg-zinc-50 dark:border-zinc-600 dark:hover:bg-zinc-800;
+  }
 }

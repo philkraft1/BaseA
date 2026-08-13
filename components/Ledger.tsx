@@ -73,7 +73,7 @@ export function Ledger() {
             No recent USDC movement. Create a request or send a payment.
           </p>
         )}
-        <ul className="divide-y divide-zinc-200 rounded-lg border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
+        <ul className="float-card divide-y divide-zinc-200 dark:divide-zinc-800">
           {data?.rows.map((row) => (
             <li
               key={`${row.txHash}-${row.kind}-${row.id ?? ''}`}
@@ -96,7 +96,13 @@ export function Ledger() {
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-mono">
+                <p
+                  className={`font-mono ${
+                    row.kind === 'out'
+                      ? 'text-rose-700 dark:text-rose-400'
+                      : 'text-emerald-700 dark:text-emerald-400'
+                  }`}
+                >
                   {row.kind === 'out' ? '−' : '+'}
                   {formatUsdc(row.amount)} USDC
                 </p>
@@ -119,7 +125,7 @@ export function Ledger() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="float-card p-4">
       <p className="text-xs uppercase tracking-wide text-zinc-500">{label}</p>
       <p className="mt-1 text-2xl font-semibold">{value}</p>
     </div>

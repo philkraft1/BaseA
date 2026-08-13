@@ -65,7 +65,7 @@ export function CreateRequestForm() {
     return (
       <button
         type="button"
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white"
+        className="float-btn"
         onClick={() => switchChain({ chainId: APP_CHAIN_ID })}
       >
         {isSwitching ? 'Switching…' : `Switch to ${appChain.name}`}
@@ -165,7 +165,7 @@ export function CreateRequestForm() {
         <label className="text-sm">
           Amount (USDC)
           <input
-            className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className="float-field"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             inputMode="decimal"
@@ -174,7 +174,7 @@ export function CreateRequestForm() {
         <label className="text-sm">
           Memo
           <input
-            className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className="float-field"
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
             placeholder="Dinner, invoice #12…"
@@ -184,7 +184,7 @@ export function CreateRequestForm() {
         <label className="text-sm">
           Payer (optional address or basename)
           <input
-            className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className="float-field"
             value={payer}
             onChange={(e) => setPayer(e.target.value)}
             placeholder="alice.base.eth or 0x… (blank = anyone)"
@@ -193,7 +193,7 @@ export function CreateRequestForm() {
         <button
           type="submit"
           disabled={isPending || isConfirming}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+          className="float-btn"
         >
           {isPending
             ? 'Confirm in wallet…'

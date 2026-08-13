@@ -60,7 +60,7 @@ export function SendUsdcForm() {
     return (
       <button
         type="button"
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white"
+        className="float-btn"
         onClick={() => switchChain({ chainId: APP_CHAIN_ID })}
       >
         {isSwitching ? 'Switching…' : `Switch to ${appChain.name}`}
@@ -145,7 +145,7 @@ export function SendUsdcForm() {
         <label className="text-sm">
           To (address or basename)
           <input
-            className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className="float-field"
             value={to}
             onChange={(e) => setTo(e.target.value)}
             placeholder="alice.base.eth"
@@ -154,7 +154,7 @@ export function SendUsdcForm() {
         <label className="text-sm">
           Amount (USDC)
           <input
-            className="mt-1 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-900"
+            className="float-field"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             inputMode="decimal"
@@ -163,7 +163,7 @@ export function SendUsdcForm() {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+          className="float-btn"
         >
           {isPending || isCallsPending
             ? 'Confirm in wallet…'

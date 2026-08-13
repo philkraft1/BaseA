@@ -187,7 +187,7 @@ export function PayRequestPanel({ id }: { id: bigint }) {
   }
 
   return (
-    <div className="max-w-md rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="float-card max-w-md p-5">
       <p className="text-xs uppercase tracking-wide text-zinc-500">Request #{id.toString()}</p>
       <p className="mt-2 text-3xl font-semibold">{formatUsdc(req.amount)} USDC</p>
       {req.memo && <p className="mt-1 text-sm text-zinc-600">{req.memo}</p>}
@@ -206,7 +206,7 @@ export function PayRequestPanel({ id }: { id: bigint }) {
       ) : chainId !== APP_CHAIN_ID ? (
         <button
           type="button"
-          className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white"
+          className="float-btn mt-4"
           onClick={() => switchChain({ chainId: APP_CHAIN_ID })}
         >
           {isSwitching ? 'Switching…' : `Switch to ${appChain.name}`}
@@ -216,7 +216,7 @@ export function PayRequestPanel({ id }: { id: bigint }) {
       ) : (
         <button
           type="button"
-          className="mt-4 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+          className="float-btn mt-4"
           disabled={isWritePending || isConfirming || isCallsPending || isCallsConfirming}
           onClick={() => {
             setSimError(null)

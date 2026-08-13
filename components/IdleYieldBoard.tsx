@@ -25,7 +25,7 @@ export function IdleYieldBoard() {
       {isError && (
         <p className="text-sm text-red-600">Could not refresh Morpho APYs.</p>
       )}
-      <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="float-card overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-zinc-200 text-xs uppercase text-zinc-500 dark:border-zinc-800">
             <tr>

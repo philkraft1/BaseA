@@ -29,7 +29,7 @@ export function TxConfirm({
         role="dialog"
         aria-modal="true"
         aria-labelledby="tx-confirm-title"
-        className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-5 shadow-lg dark:border-zinc-800 dark:bg-zinc-950"
+        className="float-card w-full max-w-md p-5 shadow-lg"
       >
         <h2 id="tx-confirm-title" className="text-lg font-semibold">
           {title}
@@ -50,7 +50,7 @@ export function TxConfirm({
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
-            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-600"
+            className="float-btn-ghost"
             onClick={onCancel}
             disabled={pending}
           >
@@ -58,7 +58,7 @@ export function TxConfirm({
           </button>
           <button
             type="button"
-            className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+            className="float-btn"
             onClick={onConfirm}
             disabled={pending}
           >

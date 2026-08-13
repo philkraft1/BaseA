@@ -92,7 +92,7 @@ export function ApprovalsPanel() {
     return (
       <button
         type="button"
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white"
+        className="float-btn"
         onClick={() => switchChain({ chainId: APP_CHAIN_ID })}
       >
         {isSwitching ? 'Switching…' : `Switch to ${appChain.name}`}
@@ -115,7 +115,7 @@ export function ApprovalsPanel() {
           {supportsBatching && active.length > 1 && (
             <button
               type="button"
-              className="w-fit rounded-lg bg-zinc-900 px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900"
+              className="float-btn w-fit"
               disabled={isCallsPending || isCallsConfirming}
               onClick={revokeAll}
             >
@@ -126,7 +126,7 @@ export function ApprovalsPanel() {
                   : `Revoke all (${active.length})`}
             </button>
           )}
-          <ul className="divide-y divide-zinc-200 rounded-xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
+          <ul className="divide-y divide-zinc-200 rounded-xl border-2 border-zinc-200 dark:divide-zinc-800 dark:border-zinc-700">
             {active.map((row) => (
               <li
                 key={row.address}
@@ -142,7 +142,7 @@ export function ApprovalsPanel() {
                   <span className="font-mono">{formatUsdc(row.allowance)}</span>
                   <button
                     type="button"
-                    className="rounded-md border border-zinc-300 px-3 py-1 text-xs dark:border-zinc-600"
+                    className="float-btn-ghost text-xs"
                     disabled={isPending || isConfirming}
                     onClick={() => revokeOne(row.address)}
                   >

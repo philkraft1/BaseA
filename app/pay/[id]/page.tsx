@@ -14,8 +14,10 @@ export default async function PayRequestPage({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-3xl font-bold">Pay request</h1>
+    <div className="flex flex-col gap-6">
+      <h1 className="border-b-2 border-zinc-200 pb-4 text-3xl font-bold tracking-tight dark:border-zinc-700">
+        Pay request
+      </h1>
       <PayRequestPanel id={requestId} />
     </div>
   )
