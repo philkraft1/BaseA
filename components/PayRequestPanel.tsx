@@ -8,6 +8,7 @@ import {
   usePublicClient,
   useReadContract,
   useSendCalls,
+  useSignTypedData,
   useSwitchChain,
   useWaitForCallsStatus,
   useWaitForTransactionReceipt,
@@ -29,14 +30,17 @@ import { useAttributedWrite } from '@/hooks/useAttributedWrite'
 import { usePayRequest } from '@/hooks/usePayRequests'
 import { useWalletCapabilities } from '@/hooks/useWalletCapabilities'
 import { attributionCapabilities } from '@/lib/attribution'
+import { permitCallForExactUsdc } from '@/lib/capped-usdc-pay'
 import { formatUsdc, shortAddress } from '@/lib/format'
 import { checksumAddress, simulateErrorMessage } from '@/lib/tx-guard'
+import { isUserRejected } from '@/lib/usdc-permit'
 
 export function PayRequestPanel({ id }: { id: bigint }) {
   const { address, isConnected } = useAccount()
   const chainId = useChainId()
   const { switchChain, isPending: isSwitching } = useSwitchChain()
   const { supportsBatching } = useWalletCapabilities()
+  const { signTypedDataAsync } = useSignTypedData()
   const client = usePublicClient({ chainId: APP_CHAIN_ID })
   const request = usePayRequest(id)
   const allowance = useReadContract({
@@ -116,51 +120,39 @@ export function PayRequestPanel({ id }: { id: bigint }) {
     if (!client || !address) return
     setSimulating(true)
     setSimError(null)
+    const payCall = {
+      to: PAY_REQUEST_ADDRESS,
+      data: encodeFunctionData({
+        abi: payRequestAbi,
+        functionName: 'pay',
+        args: [id],
+      }),
+    }
     try {
-      if (needsApprove && supportsBatching) {
+      if (needsApprove) {
+        const permitCall = await permitCallForExactUsdc({
+          client,
+          signTypedDataAsync,
+          owner: address,
+          spender: PAY_REQUEST_ADDRESS,
+          value: payAmount,
+        })
         setSimulating(false)
         setConfirm(false)
         sendCalls({
-          calls: [
-            {
-              to: USDC_ADDRESS,
-              data: encodeFunctionData({
-                abi: erc20Abi,
-                functionName: 'approve',
-                args: [PAY_REQUEST_ADDRESS, payAmount],
-              }),
-            },
-            {
-              to: PAY_REQUEST_ADDRESS,
-              data: encodeFunctionData({
-                abi: payRequestAbi,
-                functionName: 'pay',
-                args: [id],
-              }),
-            },
-          ],
+          calls: [permitCall, payCall],
           chainId: APP_CHAIN_ID,
           capabilities: attributionCapabilities(),
         })
         return
       }
-      if (needsApprove) {
-        await client.simulateContract({
-          address: USDC_ADDRESS,
-          abi: erc20Abi,
-          functionName: 'approve',
-          args: [PAY_REQUEST_ADDRESS, payAmount],
-          account: address,
-          chain: appChain,
-        })
+      if (supportsBatching) {
         setSimulating(false)
         setConfirm(false)
-        writeContract({
-          address: USDC_ADDRESS,
-          abi: erc20Abi,
-          functionName: 'approve',
-          args: [PAY_REQUEST_ADDRESS, payAmount],
+        sendCalls({
+          calls: [payCall],
           chainId: APP_CHAIN_ID,
+          capabilities: attributionCapabilities(),
         })
         return
       }
@@ -173,7 +165,11 @@ export function PayRequestPanel({ id }: { id: bigint }) {
         chain: appChain,
       })
     } catch (err) {
-      setSimError(simulateErrorMessage(err))
+      setSimError(
+        isUserRejected(err)
+          ? 'Signature cancelled. Coinbase shows “Unlimited” on ERC-20 approve — Due uses a permit for this amount only.'
+          : simulateErrorMessage(err),
+      )
       setSimulating(false)
       return
     }
@@ -245,7 +241,7 @@ export function PayRequestPanel({ id }: { id: bigint }) {
               setConfirm(true)
             }}
           >
-            {needsApprove ? 'Approve and pay' : 'Pay'}
+            {needsApprove ? 'Sign and pay' : 'Pay'}
           </button>
         </div>
       )}
@@ -270,10 +266,10 @@ export function PayRequestPanel({ id }: { id: bigint }) {
           { label: 'To', value: checksumAddress(data.payee) },
           { label: 'Amount', value: `${formatUsdc(data.amount)} USDC` },
           {
-            label: 'USDC approval',
+            label: 'USDC permit',
             value: needsApprove
-              ? `${formatUsdc(data.amount)} USDC (this request only)`
-              : 'Already approved',
+              ? `Sign ${formatUsdc(data.amount)} USDC for this request only — not unlimited`
+              : 'Already authorized',
           },
         ]}
         pending={simulating}
