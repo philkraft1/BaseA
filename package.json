@@ -1,5 +1,5 @@
 {
-  "name": "float",
+  "name": "due",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,15 +9,19 @@
     "lint": "eslint",
     "contracts:build": "cd contracts && forge build",
     "contracts:test": "cd contracts && forge test",
-    "contracts:deploy": "node scripts/deploy-pay-request.mjs"
+    "contracts:deploy": "node scripts/deploy-standing-order.mjs",
+    "contracts:operator": "node scripts/set-operator.mjs",
+    "contracts:verify": "node scripts/verify-standing-order.mjs"
   },
   "dependencies": {
     "@base-org/account": "^2.5.9",
+    "@coinbase/cdp-sdk": "^1.55.0",
     "@tanstack/react-query": "^5.101.4",
     "@x402/core": "^2.22.0",
     "@x402/evm": "^2.22.0",
     "@x402/svm": "^2.22.0",
     "next": "16.3.0",
+    "ox": "^0.9.17",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "viem": "^2.55.13",

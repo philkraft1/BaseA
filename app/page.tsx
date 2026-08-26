@@ -1,21 +1,14 @@
-import type { Metadata } from 'next'
-import { Ledger } from '@/components/Ledger'
+import { Inbox } from '@/components/Inbox'
 import { PageHeader } from '@/components/PageHeader'
-
-export const metadata: Metadata = {
-  other: {
-    'base:app_id': '6a8abd3739d7d26f4bad1883',
-  },
-}
 
 export default function Home() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Your USDC float"
-        subtitle="See what moved, request payment, or park idle dollars. On Base."
+        title="What’s due"
+        subtitle="Standing USDC orders between people, plus a control plane for who can still spend your dollars."
       />
-      <Ledger />
+      <Inbox />
     </div>
   )
 }

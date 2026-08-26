@@ -1,5 +1,6 @@
 import { http, createConfig, createStorage, cookieStorage } from 'wagmi'
 import { baseAccount, injected } from 'wagmi/connectors'
+import { DATA_SUFFIX } from './builder-code'
 import { appChain, RPC_URL } from './network'
 
 export const config = createConfig({
@@ -7,7 +8,7 @@ export const config = createConfig({
   connectors: [
     injected(),
     baseAccount({
-      appName: 'Float',
+      appName: 'Due',
     }),
   ],
   storage: createStorage({ storage: cookieStorage }),
@@ -15,6 +16,7 @@ export const config = createConfig({
   transports: {
     [appChain.id]: http(RPC_URL),
   },
+  ...(DATA_SUFFIX ? { dataSuffix: DATA_SUFFIX } : {}),
 })
 
 declare module 'wagmi' {

@@ -1,8 +1,12 @@
 import type { NextConfig } from 'next'
 
+const isDev = process.env.NODE_ENV !== 'production'
+
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
@@ -13,8 +17,11 @@ const csp = [
   "frame-src https://keys.coinbase.com https://*.coinbase.com",
   [
     "connect-src 'self'",
+    isDev ? 'http://localhost:* ws://localhost:* http://127.0.0.1:* ws://127.0.0.1:*' : '',
     'https://mainnet.base.org',
-    'https://api.morpho.org',
+    'https://sepolia.base.org',
+    'https://rpc.wallet.coinbase.com',
+    'https://api.base.org',
     'https://*.coinbase.com',
     'wss://*.coinbase.com',
     'https://keys.coinbase.com',
@@ -23,7 +30,9 @@ const csp = [
     'wss://*.walletconnect.org',
     'https://www.walletlink.org',
     'wss://www.walletlink.org',
-  ].join(' '),
+  ]
+    .filter(Boolean)
+    .join(' '),
   'upgrade-insecure-requests',
 ].join('; ')
 
@@ -43,12 +52,24 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: process.cwd(),
+  },
   async headers() {
     return [
       {
         source: '/:path*',
         headers: securityHeaders,
       },
+    ]
+  },
+  async redirects() {
+    return [
+      { source: '/request', destination: '/new', permanent: true },
+      { source: '/pay', destination: '/', permanent: true },
+      { source: '/pay/:id', destination: '/due/:id', permanent: true },
+      { source: '/approvals', destination: '/permissions', permanent: true },
+      { source: '/idle', destination: '/', permanent: true },
     ]
   },
 }

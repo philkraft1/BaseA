@@ -15,20 +15,26 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Float — USDC on Base',
-  description: 'Request, pay, and park USDC on Base',
-  icons: { icon: '/float.svg' },
+  title: 'Due — standing USDC on Base',
+  description:
+    'Person-to-person USDC standing orders and a control plane for Base Account spend permissions.',
+  icons: { icon: '/due.svg' },
   metadataBase: new URL('https://basea-tau.vercel.app'),
   openGraph: {
-    title: 'Float — USDC on Base',
-    description: 'Request, pay, and park USDC on Base',
-    images: [{ url: '/og.png', width: 1280, height: 640, alt: 'Float — request, pay, and park USDC on Base' }],
+    title: 'Due — standing USDC on Base',
+    description:
+      'Pay a basename on a schedule. See who can still spend your USDC.',
+    images: [{ url: '/og.svg', width: 1280, height: 640, alt: 'Due on Base' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Float — USDC on Base',
-    description: 'Request, pay, and park USDC on Base',
-    images: ['/og.png'],
+    title: 'Due — standing USDC on Base',
+    description:
+      'Pay a basename on a schedule. See who can still spend your USDC.',
+    images: ['/og.svg'],
+  },
+  other: {
+    'base:app_id': '6a8abd3739d7d26f4bad1883',
   },
 }
 

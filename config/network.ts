@@ -20,7 +20,7 @@ export const USDC_ADDRESS =
 
 export const USDC_DECIMALS = 6
 
-/** Must match PayRequest.MAX_MEMO_BYTES. */
+/** Must match StandingOrder.MAX_MEMO_BYTES. */
 export const MEMO_MAX_BYTES = 256
 
 export const ZERO_ADDRESS =
