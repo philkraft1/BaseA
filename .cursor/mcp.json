@@ -2,6 +2,9 @@
   "mcpServers": {
     "base-mcp": {
       "url": "https://mcp.base.org"
+    },
+    "coinbase-cdp": {
+      "url": "https://docs.cdp.coinbase.com/mcp"
     }
   }
 }
