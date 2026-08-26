@@ -19,21 +19,22 @@
 
   <g transform="translate(108, 188)">
     <rect width="168" height="168" rx="46" fill="#0e7490"/>
-    <ellipse cx="84" cy="122" rx="48" ry="14" fill="#a5f3fc" fill-opacity="0.7"/>
-    <circle cx="84" cy="70" r="33" fill="#ffffff"/>
-    <circle cx="84" cy="70" r="18" fill="url(#coin)"/>
-    <path d="M68 70.5h32M84 55.5v30" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
+    <rect x="42" y="47" width="84" height="79" rx="13" fill="#ffffff"/>
+    <path d="M58 47V39M110 47V39" stroke="#155e75" stroke-width="8" stroke-linecap="round"/>
+    <rect x="58" y="68" width="21" height="16" rx="3" fill="#06b6d4"/>
+    <rect x="89" y="68" width="21" height="16" rx="3" fill="#a5f3fc"/>
+    <rect x="58" y="94" width="52" height="12" rx="3" fill="#0e7490"/>
   </g>
 
-  <text x="312" y="268" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="92" font-weight="700" letter-spacing="-2">Float</text>
-  <text x="312" y="338" fill="#a5f3fc" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="34" font-weight="500">Request, pay, and park USDC on Base</text>
+  <text x="312" y="268" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="92" font-weight="700" letter-spacing="-2">Due</text>
+  <text x="312" y="338" fill="#a5f3fc" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="34" font-weight="500">Standing USDC orders on Base</text>
 
   <g font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="600">
     <rect x="312" y="382" width="92" height="42" rx="21" fill="#155e75"/>
     <text x="358" y="410" fill="#ecfeff" text-anchor="middle">USDC</text>
     <rect x="416" y="382" width="88" height="42" rx="21" fill="#155e75"/>
     <text x="460" y="410" fill="#ecfeff" text-anchor="middle">Base</text>
-    <rect x="516" y="382" width="148" height="42" rx="21" fill="#155e75"/>
-    <text x="590" y="410" fill="#ecfeff" text-anchor="middle">PayRequest</text>
+    <rect x="516" y="382" width="210" height="42" rx="21" fill="#155e75"/>
+    <text x="621" y="410" fill="#ecfeff" text-anchor="middle">StandingOrder</text>
   </g>
 </svg>

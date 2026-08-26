@@ -2,7 +2,7 @@
 
 import { useAccount, useReadContract } from 'wagmi'
 import { APP_CHAIN_ID, USDC_ADDRESS } from '@/config/network'
-import { erc20Abi } from '@/config/pay-request'
+import { erc20Abi } from '@/config/standing-order'
 
 export function useUsdcBalance() {
   const { address } = useAccount()

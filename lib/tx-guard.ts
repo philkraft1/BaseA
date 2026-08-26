@@ -5,7 +5,7 @@ import {
   USDC_DECIMALS,
   ZERO_ADDRESS,
 } from '@/config/network'
-import { PAY_REQUEST_ADDRESS } from '@/config/pay-request'
+import { STANDING_ORDER_ADDRESS } from '@/config/standing-order'
 
 export { MEMO_MAX_BYTES }
 
@@ -51,8 +51,8 @@ export function assertSafeRecipient(to: string): string | null {
   if (lower === USDC_ADDRESS.toLowerCase()) {
     return 'Cannot send to the USDC contract.'
   }
-  if (lower === PAY_REQUEST_ADDRESS.toLowerCase()) {
-    return 'Cannot send to the PayRequest contract.'
+  if (lower === STANDING_ORDER_ADDRESS.toLowerCase()) {
+    return 'Cannot send to the StandingOrder contract.'
   }
   return null
 }
