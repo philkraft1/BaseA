@@ -25,7 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 Due
               </span>
               <span className="mt-1 block text-xs text-zinc-500">
-                Standing USDC on Base
+                USDC on Base
               </span>
             </span>
           </Link>

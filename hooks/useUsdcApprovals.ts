@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { parseAbiItem, type Address } from 'viem'
 import { useAccount, usePublicClient, useReadContracts } from 'wagmi'
 import { APP_CHAIN_ID, USDC_ADDRESS, ZERO_ADDRESS } from '@/config/network'
+import { PAY_REQUEST_ADDRESS } from '@/config/pay-request'
 import { STANDING_ORDER_ADDRESS, erc20Abi } from '@/config/standing-order'
 import { getLogsInRange } from '@/lib/logs'
 
@@ -18,6 +19,7 @@ const ALWAYS_CHECK: { name: string; address: Address }[] = [
     address: '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD',
   },
   { name: 'Due StandingOrder', address: STANDING_ORDER_ADDRESS },
+  { name: 'Due PayRequest', address: PAY_REQUEST_ADDRESS },
 ]
 
 export type AllowanceRow = {
