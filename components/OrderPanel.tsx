@@ -90,7 +90,8 @@ export function OrderPanel({ id }: { id: bigint }) {
   }
 
   const isPayer = Boolean(address && data.payer.toLowerCase() === address.toLowerCase())
-  const needsApprove = (allowance.data ?? BigInt(0)) < data.amount
+  const payAmount = data.amount
+  const needsApprove = (allowance.data ?? BigInt(0)) < payAmount
 
   async function onConfirmPay() {
     if (!client || !address) return
@@ -107,7 +108,7 @@ export function OrderPanel({ id }: { id: bigint }) {
               data: encodeFunctionData({
                 abi: erc20Abi,
                 functionName: 'approve',
-                args: [STANDING_ORDER_ADDRESS, data.amount],
+                args: [STANDING_ORDER_ADDRESS, payAmount],
               }),
             },
             {
@@ -129,7 +130,7 @@ export function OrderPanel({ id }: { id: bigint }) {
           address: USDC_ADDRESS,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [STANDING_ORDER_ADDRESS, data.amount],
+          args: [STANDING_ORDER_ADDRESS, payAmount],
           account: address,
           chain: appChain,
         })
@@ -139,7 +140,7 @@ export function OrderPanel({ id }: { id: bigint }) {
           address: USDC_ADDRESS,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [STANDING_ORDER_ADDRESS, data.amount],
+          args: [STANDING_ORDER_ADDRESS, payAmount],
           chainId: APP_CHAIN_ID,
         })
         return
