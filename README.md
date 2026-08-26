@@ -48,22 +48,56 @@ Onchain counters: `GET /api/metrics`.
 
 ## Environment
 
-See [`.env.example`](.env.example).
+See [`.env.example`](.env.example). Never commit private keys. Put deploy secrets in `contracts/.env`, app secrets in `.env.local` and Vercel. Only `NEXT_PUBLIC_*` is safe on the client.
 
-| Variable | Where |
-|----------|--------|
-| `NEXT_PUBLIC_STANDING_ORDER_ADDRESS` | Client |
-| `NEXT_PUBLIC_USDC_ADDRESS` | Client |
-| `NEXT_PUBLIC_RPC_URL` | Client |
-| `NEXT_PUBLIC_BUILDER_CODE` | Client — from [base.dev](https://www.base.dev) Settings → Builder Codes |
-| `CDP_API_KEY_ID` / `CDP_API_KEY_SECRET` / `CDP_WALLET_SECRET` | Server only — [CDP Portal](https://portal.cdp.coinbase.com) |
-| `PAYMASTER_URL` | Server, optional gas sponsorship |
-| `CRON_SECRET` | Server — Vercel cron `Authorization: Bearer` |
-| `BASE_NOTIFICATIONS_API_KEY` | Server, optional |
-| `ETHERSCAN_API_KEY` | Deploy machine — verify on Basescan (API V2) |
-| `DEPLOYER_PRIVATE_KEY` | Deploy machine only |
+| Variable | Where it lives | Where you get it |
+|----------|----------------|------------------|
+| `DEPLOYER_PRIVATE_KEY` | `contracts/.env` | Your EOA (MetaMask / Rabby / Coinbase Wallet export, or Foundry `cast wallet`). Fund it with ETH on **Base**. Not from CDP. |
+| `ETHERSCAN_API_KEY` | `contracts/.env` | [etherscan.io/apidashboard](https://etherscan.io/apidashboard) (API V2; same key works for Basescan) |
+| `NEXT_PUBLIC_STANDING_ORDER_ADDRESS` | `.env.local` + Vercel | Printed by `npm run contracts:deploy` (`StandingOrder: 0x…`); script also writes `.env.local` |
+| `NEXT_PUBLIC_BUILDER_CODE` | `.env.local` + Vercel | [base.dev](https://www.base.dev) → project → Settings → Builder Codes |
+| `NEXT_PUBLIC_USDC_ADDRESS` / `NEXT_PUBLIC_RPC_URL` | Client (defaults exist) | Native USDC on Base + `https://mainnet.base.org` unless you use a paid RPC |
+| `CDP_API_KEY_ID` / `CDP_API_KEY_SECRET` | `.env.local` + Vercel (server) | [CDP Portal](https://portal.cdp.coinbase.com) API keys |
+| `CDP_WALLET_SECRET` | `.env.local` + Vercel (server) | CDP Portal → Wallets / API Wallets → Wallet Secret (separate from the API key) |
+| `OPERATOR_ADDRESS` | `contracts/.env` | `address` from `GET /api/subscription/owner` after CDP is configured |
+| `PAYMASTER_URL` | Server, optional | CDP Paymaster |
+| `CRON_SECRET` | Vercel | You invent this; Vercel Cron sends `Authorization: Bearer` |
+| `BASE_NOTIFICATIONS_API_KEY` | Server, optional | Base Notifications API |
 
 Never put CDP secrets or the deployer key in `NEXT_PUBLIC_*` vars.
+
+## Ship steps 1–6 (where each value comes from)
+
+Do them in order. Steps 2, 5, and 6 are not env vars.
+
+```mermaid
+flowchart TD
+  wallet[Your funded EOA]
+  cdpPortal[portal.cdp.coinbase.com]
+  baseDev[base.dev]
+  etherscan[etherscan.io API V2]
+  deploy[npm run contracts:deploy]
+  ownerApi["GET /api/subscription/owner"]
+  talent[talent.xyz / Builder Score]
+  wallet -->|"DEPLOYER_PRIVATE_KEY"| deploy
+  deploy -->|"prints contract address"| envLocal["NEXT_PUBLIC_STANDING_ORDER_ADDRESS"]
+  etherscan -->|"ETHERSCAN_API_KEY"| verify["npm run contracts:verify"]
+  baseDev -->|"NEXT_PUBLIC_BUILDER_CODE"| envLocal
+  cdpPortal -->|"CDP_API_KEY_ID SECRET WALLET_SECRET"| vercel[Vercel server env]
+  vercel --> ownerApi
+  ownerApi -->|"OPERATOR_ADDRESS"| setOp["npm run contracts:operator"]
+  envLocal --> setOp
+  baseDev --> listing[App listing name Due]
+  talent --> github[Connect Float repo + deployer]
+```
+
+
+1. **`DEPLOYER_PRIVATE_KEY`** — hex private key of an EOA you control (`0x` + 64 hex chars) in [`contracts/.env`](contracts/.env). Fund that address with a little ETH on Base. Optional: `BASE_RPC_URL`.
+2. **Deploy + verify** — `npm run contracts:deploy` then `npm run contracts:verify` (needs `ETHERSCAN_API_KEY`). The deploy script is [`scripts/deploy-standing-order.mjs`](scripts/deploy-standing-order.mjs).
+3. **`NEXT_PUBLIC_STANDING_ORDER_ADDRESS`** (output of step 2) and **`NEXT_PUBLIC_BUILDER_CODE`** (base.dev Settings → Builder Codes) in `.env.local` and Vercel → Settings → Environment Variables.
+4. **CDP trio** on Vercel (server only) and `.env.local`. Redeploy / `npm run dev`, then `GET /api/subscription/owner` → that `address` is `OPERATOR_ADDRESS`. Put it in `contracts/.env` and run `npm run contracts:operator`. Without `CDP_WALLET_SECRET`, auto-charge stays off; **Pay this period** still works.
+5. **Base.dev listing** — dashboard paste, not an env var. Same project as app id `6a8abd3739d7d26f4bad1883`. See the table below.
+6. **Talent** — [talent.xyz](https://talent.xyz): Basename, human checkmark, score ≥ 40, connect GitHub [philkraft1/Float](https://github.com/philkraft1/Float) and the **same deployer wallet as step 1**. After mainnet, create / pay / revoke on Due so Talent sees txs on your verified `StandingOrder`.
 
 ## Setup
 

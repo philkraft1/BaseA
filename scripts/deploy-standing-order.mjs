@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = resolve(__dirname, '..')
 
-function loadEnvFile(filePath: string) {
+function loadEnvFile(filePath) {
   if (!existsSync(filePath)) return
   for (const line of readFileSync(filePath, 'utf8').split(/\r?\n/)) {
     const trimmed = line.trim()
