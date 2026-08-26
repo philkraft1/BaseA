@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { encodeFunctionData, maxUint256, zeroAddress } from 'viem'
+import { encodeFunctionData, zeroAddress } from 'viem'
 import {
   useAccount,
   useChainId,
@@ -95,7 +95,8 @@ export function PayRequestPanel({ id }: { id: bigint }) {
   const canPay = Boolean(
     isConnected && !data.paid && !isPayee && (isOpen || isDesignatedPayer),
   )
-  const needsApprove = (allowance.data ?? BigInt(0)) < data.amount
+  const payAmount = data.amount
+  const needsApprove = (allowance.data ?? BigInt(0)) < payAmount
   const shareUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/pay/${id.toString()}`
@@ -126,7 +127,7 @@ export function PayRequestPanel({ id }: { id: bigint }) {
               data: encodeFunctionData({
                 abi: erc20Abi,
                 functionName: 'approve',
-                args: [PAY_REQUEST_ADDRESS, maxUint256],
+                args: [PAY_REQUEST_ADDRESS, payAmount],
               }),
             },
             {
@@ -148,7 +149,7 @@ export function PayRequestPanel({ id }: { id: bigint }) {
           address: USDC_ADDRESS,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [PAY_REQUEST_ADDRESS, maxUint256],
+          args: [PAY_REQUEST_ADDRESS, payAmount],
           account: address,
           chain: appChain,
         })
@@ -158,7 +159,7 @@ export function PayRequestPanel({ id }: { id: bigint }) {
           address: USDC_ADDRESS,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [PAY_REQUEST_ADDRESS, maxUint256],
+          args: [PAY_REQUEST_ADDRESS, payAmount],
           chainId: APP_CHAIN_ID,
         })
         return
@@ -268,7 +269,12 @@ export function PayRequestPanel({ id }: { id: bigint }) {
         lines={[
           { label: 'To', value: checksumAddress(data.payee) },
           { label: 'Amount', value: `${formatUsdc(data.amount)} USDC` },
-          { label: 'Approve first', value: needsApprove ? 'Yes' : 'No' },
+          {
+            label: 'USDC approval',
+            value: needsApprove
+              ? `${formatUsdc(data.amount)} USDC (this request only)`
+              : 'Already approved',
+          },
         ]}
         pending={simulating}
         error={simError}
