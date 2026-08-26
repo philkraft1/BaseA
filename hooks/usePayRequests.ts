@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { parseAbiItem, type Address } from 'viem'
+import { type Address } from 'viem'
 import { useAccount, usePublicClient, useReadContract } from 'wagmi'
 import { APP_CHAIN_ID, ZERO_ADDRESS } from '@/config/network'
 import {
@@ -9,11 +9,7 @@ import {
   isPayRequestDeployed,
   payRequestAbi,
 } from '@/config/pay-request'
-import { getLogsInRange } from '@/lib/logs'
-
-const createdEvent = parseAbiItem(
-  'event RequestCreated(uint256 indexed id, address indexed payee, address indexed payer, address token, uint256 amount, string memo)',
-)
+import { isRpcRateLimited } from '@/lib/logs'
 
 export type PayRequestView = {
   id: bigint
@@ -33,62 +29,39 @@ export function usePayRequests() {
   return useQuery({
     queryKey: ['pay-requests', address, PAY_REQUEST_ADDRESS],
     enabled: Boolean(address && client && isPayRequestDeployed),
+    retry: (count, error) => count < 3 && isRpcRateLimited(error),
+    retryDelay: (count) => 500 * 2 ** count,
     queryFn: async (): Promise<{
       incoming: PayRequestView[]
       outgoing: PayRequestView[]
     }> => {
       if (!address || !client) return { incoming: [], outgoing: [] }
 
-      const latest = await client.getBlockNumber()
-      const lookback = BigInt(80_000)
-      const fromBlock = latest > lookback ? latest - lookback : BigInt(0)
+      const nextId = await client.readContract({
+        address: PAY_REQUEST_ADDRESS,
+        abi: payRequestAbi,
+        functionName: 'nextId',
+      })
+      if (nextId === BigInt(0)) return { incoming: [], outgoing: [] }
+      const count = nextId > BigInt(500) ? 500 : Number(nextId)
 
-      const [asPayee, asPayer] = await Promise.all([
-        getLogsInRange(
-          (start, end) =>
-            client.getLogs({
-              address: PAY_REQUEST_ADDRESS,
-              event: createdEvent,
-              fromBlock: start,
-              toBlock: end,
-              args: { payee: address },
-            }),
-          fromBlock,
-          latest,
-        ),
-        getLogsInRange(
-          (start, end) =>
-            client.getLogs({
-              address: PAY_REQUEST_ADDRESS,
-              event: createdEvent,
-              fromBlock: start,
-              toBlock: end,
-              args: { payer: address },
-            }),
-          fromBlock,
-          latest,
-        ),
-      ])
-
-      const ids = [
-        ...new Set(
-          [...asPayee, ...asPayer]
-            .map((log) => log.args.id)
-            .filter((id): id is bigint => id !== undefined),
-        ),
-      ]
-
-      const views: PayRequestView[] = []
-      for (const id of ids) {
-        const request = await client.readContract({
+      const results = await client.multicall({
+        contracts: Array.from({ length: count }, (_, i) => ({
           address: PAY_REQUEST_ADDRESS,
           abi: payRequestAbi,
-          functionName: 'getRequest',
-          args: [id],
-        })
-        if (request.payee === ZERO_ADDRESS) continue
+          functionName: 'getRequest' as const,
+          args: [BigInt(i)] as const,
+        })),
+        allowFailure: true,
+      })
+
+      const views: PayRequestView[] = []
+      results.forEach((row, i) => {
+        if (row.status !== 'success') return
+        const request = row.result
+        if (request.payee === ZERO_ADDRESS) return
         views.push({
-          id,
+          id: BigInt(i),
           payee: request.payee,
           payer: request.payer,
           token: request.token,
@@ -97,7 +70,7 @@ export function usePayRequests() {
           paid: request.paid,
           paidBy: request.paidBy,
         })
-      }
+      })
 
       return {
         incoming: views.filter(

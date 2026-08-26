@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { parseAbiItem, type Address } from 'viem'
+import { type Address } from 'viem'
 import { useAccount, usePublicClient, useReadContract } from 'wagmi'
 import { APP_CHAIN_ID } from '@/config/network'
 import {
@@ -9,11 +9,7 @@ import {
   isStandingOrderDeployed,
   standingOrderAbi,
 } from '@/config/standing-order'
-import { getLogsInRange } from '@/lib/logs'
-
-const createdEvent = parseAbiItem(
-  'event OrderCreated(uint256 indexed id, address indexed payer, address indexed payee, address token, uint256 amount, uint64 period, bytes32 subscriptionId, string memo)',
-)
+import { isRpcRateLimited } from '@/lib/logs'
 
 export type StandingOrderView = {
   id: bigint
@@ -39,73 +35,56 @@ export function useOrders() {
   return useQuery({
     queryKey: ['standing-orders', address, STANDING_ORDER_ADDRESS],
     enabled: Boolean(address && client && isStandingOrderDeployed),
+    retry: (count, error) => count < 3 && isRpcRateLimited(error),
+    retryDelay: (count) => 500 * 2 ** count,
     queryFn: async (): Promise<{
       incoming: StandingOrderView[]
       outgoing: StandingOrderView[]
     }> => {
       if (!address || !client) return { incoming: [], outgoing: [] }
 
-      const latest = await client.getBlockNumber()
-      const lookback = BigInt(80_000)
-      const fromBlock = latest > lookback ? latest - lookback : BigInt(0)
+      const nextId = await client.readContract({
+        address: STANDING_ORDER_ADDRESS,
+        abi: standingOrderAbi,
+        functionName: 'nextId',
+      })
+      if (nextId === BigInt(0)) return { incoming: [], outgoing: [] }
 
-      const [asPayer, asPayee] = await Promise.all([
-        getLogsInRange(
-          (start, end) =>
-            client.getLogs({
-              address: STANDING_ORDER_ADDRESS,
-              event: createdEvent,
-              fromBlock: start,
-              toBlock: end,
-              args: { payer: address },
-            }),
-          fromBlock,
-          latest,
-        ),
-        getLogsInRange(
-          (start, end) =>
-            client.getLogs({
-              address: STANDING_ORDER_ADDRESS,
-              event: createdEvent,
-              fromBlock: start,
-              toBlock: end,
-              args: { payee: address },
-            }),
-          fromBlock,
-          latest,
-        ),
-      ])
-
-      const ids = [
-        ...new Set(
-          [...asPayer, ...asPayee]
-            .map((log) => log.args.id)
-            .filter((id): id is bigint => id !== undefined),
-        ),
-      ]
+      const count = nextId > BigInt(500) ? 500 : Number(nextId)
+      const ids = Array.from({ length: count }, (_, i) => BigInt(i))
+      const orderRows = await client.multicall({
+        contracts: ids.map((id) => ({
+          address: STANDING_ORDER_ADDRESS,
+          abi: standingOrderAbi,
+          functionName: 'getOrder' as const,
+          args: [id] as const,
+        })),
+        allowFailure: true,
+      })
+      const dueRows = await client.multicall({
+        contracts: ids.map((id) => ({
+          address: STANDING_ORDER_ADDRESS,
+          abi: standingOrderAbi,
+          functionName: 'isDue' as const,
+          args: [id] as const,
+        })),
+        allowFailure: true,
+      })
+      const nextRows = await client.multicall({
+        contracts: ids.map((id) => ({
+          address: STANDING_ORDER_ADDRESS,
+          abi: standingOrderAbi,
+          functionName: 'nextDueAt' as const,
+          args: [id] as const,
+        })),
+        allowFailure: true,
+      })
 
       const views: StandingOrderView[] = []
-      for (const id of ids) {
-        const [order, due, nextDue] = await Promise.all([
-          client.readContract({
-            address: STANDING_ORDER_ADDRESS,
-            abi: standingOrderAbi,
-            functionName: 'getOrder',
-            args: [id],
-          }),
-          client.readContract({
-            address: STANDING_ORDER_ADDRESS,
-            abi: standingOrderAbi,
-            functionName: 'isDue',
-            args: [id],
-          }),
-          client.readContract({
-            address: STANDING_ORDER_ADDRESS,
-            abi: standingOrderAbi,
-            functionName: 'nextDueAt',
-            args: [id],
-          }),
-        ])
+      ids.forEach((id, i) => {
+        const orderRow = orderRows[i]
+        if (orderRow.status !== 'success') return
+        const order = orderRow.result
         views.push({
           id,
           payer: order.payer,
@@ -119,10 +98,10 @@ export function useOrders() {
           subscriptionId: order.subscriptionId,
           memo: order.memo,
           cancelled: order.cancelled,
-          due,
-          nextDueAt: nextDue,
+          due: dueRows[i]?.status === 'success' ? dueRows[i].result : false,
+          nextDueAt: nextRows[i]?.status === 'success' ? nextRows[i].result : BigInt(0),
         })
-      }
+      })
 
       return {
         incoming: views.filter(
