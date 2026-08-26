@@ -6,7 +6,7 @@ import { useAccount, usePublicClient, useReadContracts } from 'wagmi'
 import { APP_CHAIN_ID, USDC_ADDRESS, ZERO_ADDRESS } from '@/config/network'
 import { PAY_REQUEST_ADDRESS } from '@/config/pay-request'
 import { STANDING_ORDER_ADDRESS, erc20Abi } from '@/config/standing-order'
-import { getLogsInRange } from '@/lib/logs'
+import { getLogsInRange, isRpcRateLimited } from '@/lib/logs'
 
 const approvalEvent = parseAbiItem(
   'event Approval(address indexed owner, address indexed spender, uint256 value)',
@@ -28,17 +28,26 @@ export type AllowanceRow = {
   allowance: bigint
 }
 
-export function useUsdcApprovals() {
+export function useUsdcApprovals(options?: { scanLogs?: boolean }) {
+  const scanLogs = options?.scanLogs ?? true
   const { address } = useAccount()
   const client = usePublicClient({ chainId: APP_CHAIN_ID })
 
   const spendersQuery = useQuery({
-    queryKey: ['usdc-approval-spenders', address, USDC_ADDRESS],
+    queryKey: ['usdc-approval-spenders', address, USDC_ADDRESS, scanLogs],
     enabled: Boolean(address && client),
+    retry: (count, error) => count < 3 && isRpcRateLimited(error),
+    retryDelay: (count) => 500 * 2 ** count,
     queryFn: async (): Promise<Address[]> => {
       if (!address || !client) return []
+      const known = ALWAYS_CHECK.map((row) => row.address).filter(
+        (spender) => spender !== ZERO_ADDRESS,
+      )
+      if (!scanLogs) {
+        return [...new Set(known.map((s) => s.toLowerCase() as Address))]
+      }
       const latest = await client.getBlockNumber()
-      const lookback = BigInt(80_000)
+      const lookback = BigInt(20_000)
       const fromBlock = latest > lookback ? latest - lookback : BigInt(0)
       const logs = await getLogsInRange(
         (start, end) =>
@@ -55,9 +64,6 @@ export function useUsdcApprovals() {
       const fromLogs = logs
         .map((log) => log.args.spender)
         .filter((spender): spender is Address => Boolean(spender))
-      const known = ALWAYS_CHECK.map((row) => row.address).filter(
-        (spender) => spender !== ZERO_ADDRESS,
-      )
       return [...new Set([...fromLogs, ...known].map((s) => s.toLowerCase() as Address))]
     },
   })

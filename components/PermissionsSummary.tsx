@@ -8,7 +8,7 @@ import { useUsdcApprovals } from '@/hooks/useUsdcApprovals'
 export function PermissionsSummary() {
   const { isConnected } = useAccount()
   const perms = useSpendPermissions()
-  const approvals = useUsdcApprovals()
+  const approvals = useUsdcApprovals({ scanLogs: false })
 
   if (!isConnected) return null
 

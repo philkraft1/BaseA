@@ -10,6 +10,7 @@ import { formatUsdc, shortAddress } from '@/lib/format'
 import { formatDueDate, periodToDays } from '@/lib/period'
 import { isStandingOrderDeployed } from '@/config/standing-order'
 import { isPayRequestDeployed } from '@/config/pay-request'
+import { isRpcRateLimited } from '@/lib/logs'
 
 function OrderCard({
   order,
@@ -135,13 +136,9 @@ export function Inbox() {
 
   const orderError = isStandingOrderDeployed ? orders.error : null
   const requestError = isPayRequestDeployed ? requests.error : null
-  if (orderError && requestError) {
-    return (
-      <p className="text-sm text-red-600">
-        {orderError instanceof Error ? orderError.message : 'Failed to load inbox'}
-      </p>
-    )
-  }
+  const rpcBusy =
+    (orderError && isRpcRateLimited(orderError)) ||
+    (requestError && isRpcRateLimited(requestError))
 
   const incomingOrders = orders.data?.incoming.filter((row) => !row.cancelled) ?? []
   const outgoingOrders = orders.data?.outgoing.filter((row) => !row.cancelled) ?? []
@@ -150,6 +147,32 @@ export function Inbox() {
 
   const incomingEmpty = incomingOrders.length === 0 && incomingRequests.length === 0
   const outgoingEmpty = outgoingOrders.length === 0 && outgoingRequests.length === 0
+  const hasAny =
+    incomingOrders.length +
+      outgoingOrders.length +
+      incomingRequests.length +
+      outgoingRequests.length >
+    0
+
+  if (orderError && requestError && !hasAny) {
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-red-600">
+          {rpcBusy
+            ? 'Base’s public RPC is rate-limiting right now, so Inbox could not load. Your onchain invoice is still there — retry in a few seconds, or open the share link from New.'
+            : orderError instanceof Error
+              ? orderError.message
+              : 'Failed to load inbox'}
+        </p>
+        <p className="text-sm text-zinc-500">
+          Direct link to the invoice you created:{' '}
+          <Link href="/pay/0" className="underline">
+            /pay/0
+          </Link>
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-6">
