@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { encodeFunctionData, maxUint256, zeroAddress } from 'viem'
+import { encodeFunctionData, zeroAddress } from 'viem'
 import {
   useAccount,
   useChainId,
@@ -107,7 +107,7 @@ export function OrderPanel({ id }: { id: bigint }) {
               data: encodeFunctionData({
                 abi: erc20Abi,
                 functionName: 'approve',
-                args: [STANDING_ORDER_ADDRESS, maxUint256],
+                args: [STANDING_ORDER_ADDRESS, data.amount],
               }),
             },
             {
@@ -129,7 +129,7 @@ export function OrderPanel({ id }: { id: bigint }) {
           address: USDC_ADDRESS,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [STANDING_ORDER_ADDRESS, maxUint256],
+          args: [STANDING_ORDER_ADDRESS, data.amount],
           account: address,
           chain: appChain,
         })
@@ -139,7 +139,7 @@ export function OrderPanel({ id }: { id: bigint }) {
           address: USDC_ADDRESS,
           abi: erc20Abi,
           functionName: 'approve',
-          args: [STANDING_ORDER_ADDRESS, maxUint256],
+          args: [STANDING_ORDER_ADDRESS, data.amount],
           chainId: APP_CHAIN_ID,
         })
         return
@@ -281,7 +281,12 @@ export function OrderPanel({ id }: { id: bigint }) {
         lines={[
           { label: 'To', value: checksumAddress(data.payee) },
           { label: 'Amount', value: `${formatUsdc(data.amount)} USDC` },
-          { label: 'Approve first', value: needsApprove ? 'Yes' : 'No' },
+          {
+            label: 'USDC approval',
+            value: needsApprove
+              ? `${formatUsdc(data.amount)} USDC (this period only)`
+              : 'Already approved',
+          },
         ]}
         pending={simulating}
         error={simError}
