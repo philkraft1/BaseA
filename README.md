@@ -1,6 +1,6 @@
 # Due — standing USDC orders for Base App
 
-Personal control plane for Base Account users: **who can spend your USDC**, and **standing orders** to pay a basename on a schedule.
+Personal control plane for Base Account users: **who can spend your USDC**, **standing orders** to pay a basename on a schedule, and **one-time pay requests**.
 
 - **Repo:** https://github.com/philkraft1/Float
 - **Live demo:** https://basea-tau.vercel.app
@@ -18,16 +18,19 @@ Base App is full of swaps, launches, and merchant checkout. Nothing else is:
 ## Daily use
 
 1. Connect Base Account or an injected wallet.
-2. **Inbox** — incoming and outgoing standing orders, plus who can still spend.
-3. **New** — create an order to a basename; optionally grant a spend permission so Due can auto-charge.
-4. **`/due/{id}`** — shareable link; payer settles the current period.
-5. **Permissions** — list spend permissions + discovered USDC allowances; revoke.
+2. **Inbox** — incoming and outgoing standing orders and pay requests, plus who can still spend.
+3. **New** — create a standing order to a basename, or a one-time USDC request (open or named payer).
+4. **`/due/{id}`** — shareable standing-order link; payer settles the current period.
+5. **`/pay/{id}`** — shareable one-time request; payer approves USDC and pays.
+6. **Permissions** — list spend permissions + discovered USDC allowances; revoke.
 
 Spend permissions inside Base App itself are still rolling out. Auto-charge is implemented; **Pay this period** is the path that always works.
 
 ## Contract
 
 [`contracts/src/StandingOrder.sol`](contracts/src/StandingOrder.sol) — `create`, `payPeriod`, `recordPayment` (operator / CDP), `cancel`.
+
+[`contracts/src/PayRequest.sol`](contracts/src/PayRequest.sol) — `createRequest`, `pay`. Set `NEXT_PUBLIC_PAY_REQUEST_ADDRESS` after deploy.
 
 ```bash
 npm run contracts:build
@@ -55,6 +58,7 @@ See [`.env.example`](.env.example). Never commit private keys. Put deploy secret
 | `DEPLOYER_PRIVATE_KEY` | `contracts/.env` | Your EOA (MetaMask / Rabby / Coinbase Wallet export, or Foundry `cast wallet`). Fund it with ETH on **Base**. Not from CDP. |
 | `ETHERSCAN_API_KEY` | `contracts/.env` | [etherscan.io/apidashboard](https://etherscan.io/apidashboard) (API V2; same key works for Basescan) |
 | `NEXT_PUBLIC_STANDING_ORDER_ADDRESS` | `.env.local` + Vercel | Printed by `npm run contracts:deploy` (`StandingOrder: 0x…`); script also writes `.env.local` |
+| `NEXT_PUBLIC_PAY_REQUEST_ADDRESS` | `.env.local` + Vercel | Deployed `PayRequest` address (verified on Base) |
 | `NEXT_PUBLIC_BUILDER_CODE` | `.env.local` + Vercel | [base.dev](https://www.base.dev) → project → Settings → Builder Codes |
 | `NEXT_PUBLIC_USDC_ADDRESS` / `NEXT_PUBLIC_RPC_URL` | Client (defaults exist) | Native USDC on Base + `https://mainnet.base.org` unless you use a paid RPC |
 | `CDP_API_KEY_ID` / `CDP_API_KEY_SECRET` | `.env.local` + Vercel (server) | [CDP Portal](https://portal.cdp.coinbase.com) API keys |
