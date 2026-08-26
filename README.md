@@ -99,6 +99,8 @@ flowchart TD
 5. **Base.dev listing** — dashboard paste, not an env var. Same project as app id `6a8abd3739d7d26f4bad1883`. See the table below.
 6. **Talent** — [talent.xyz](https://talent.xyz): Basename, human checkmark, score ≥ 40, connect GitHub [philkraft1/Float](https://github.com/philkraft1/Float) and the **same deployer wallet as step 1**. After mainnet, create / pay / revoke on Due so Talent sees txs on your verified `StandingOrder`.
 
+Suggested order: **1 → 2 (deploy+verify) → 3 (address + builder code in Vercel) → 4 (CDP wallet secret + setOperator) → 5 (listing) → 6 (Talent + real txs).**
+
 ## Setup
 
 ```bash
