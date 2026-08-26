@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -26,8 +27,8 @@
     <text x="88" y="62" fill="#a5f3fc" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="16" font-weight="500">USDC on Base</text>
   </g>
 
-  <text x="72" y="220" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="64" font-weight="700" letter-spacing="-1.6">Whats due, paid.</text>
-  <text x="72" y="278" fill="#cffafe" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="500">Standing USDC between people  plus an inbox for who can still spend your dollars.</text>
+  <text x="72" y="220" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="64" font-weight="700" letter-spacing="-1.6">What's due, paid.</text>
+  <text x="72" y="278" fill="#cffafe" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="500">Standing USDC between people - plus an inbox for who can still spend your dollars.</text>
 
   <g font-family="Segoe UI, Helvetica Neue, Arial, sans-serif">
     <g transform="translate(72, 340)">
@@ -38,7 +39,7 @@
     <g transform="translate(632, 340)">
       <rect width="576" height="88" rx="18" fill="#082f3a" fill-opacity="0.55" stroke="#155e75"/>
       <text x="24" y="36" fill="#67e8f9" font-size="13" font-weight="700" letter-spacing="1.4">FOR</text>
-      <text x="24" y="64" fill="#ecfeff" font-size="18" font-weight="600">Rent, allowance, invoices  not swaps or minting.</text>
+      <text x="24" y="64" fill="#ecfeff" font-size="18" font-weight="600">Rent, allowance, invoices - not swaps or minting.</text>
     </g>
   </g>
 
@@ -54,6 +55,6 @@
   </g>
 
   <text x="72" y="560" fill="#a5f3fc" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20">Exact-amount USDC. Share a link. You stay in control.</text>
-  <text x="72" y="640" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700">Open Due ’ basea-tau.vercel.app</text>
+  <text x="72" y="640" fill="#ffffff" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="22" font-weight="700">Open Due - basea-tau.vercel.app</text>
   <text x="980" y="640" fill="#67e8f9" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="16" text-anchor="end">Built on Base</text>
 </svg>
