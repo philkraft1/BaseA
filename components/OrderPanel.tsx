@@ -8,7 +8,6 @@ import {
   usePublicClient,
   useReadContract,
   useSendCalls,
-  useSignTypedData,
   useSwitchChain,
   useWaitForCallsStatus,
   useWaitForTransactionReceipt,
@@ -30,18 +29,16 @@ import { useAttributedWrite } from '@/hooks/useAttributedWrite'
 import { useWalletCapabilities } from '@/hooks/useWalletCapabilities'
 import { useOrder } from '@/hooks/useOrders'
 import { attributionCapabilities } from '@/lib/attribution'
-import { permitCallForExactUsdc } from '@/lib/capped-usdc-pay'
+import { cappedUsdcPayCalls, walletCanBatchCalls } from '@/lib/capped-usdc-pay'
 import { formatUsdc, shortAddress } from '@/lib/format'
 import { formatDueDate, periodToDays } from '@/lib/period'
 import { checksumAddress, simulateErrorMessage } from '@/lib/tx-guard'
-import { isUserRejected } from '@/lib/usdc-permit'
 
 export function OrderPanel({ id }: { id: bigint }) {
   const { address, isConnected } = useAccount()
   const chainId = useChainId()
   const { switchChain, isPending: isSwitching } = useSwitchChain()
   const { supportsBatching } = useWalletCapabilities()
-  const { signTypedDataAsync } = useSignTypedData()
   const client = usePublicClient({ chainId: APP_CHAIN_ID })
   const { order, due, nextDueAt } = useOrder(id)
   const allowance = useReadContract({
@@ -110,30 +107,39 @@ export function OrderPanel({ id }: { id: bigint }) {
       }),
     }
     try {
-      if (needsApprove) {
-        const permitCall = await permitCallForExactUsdc({
-          client,
-          signTypedDataAsync,
-          owner: address,
-          spender: STANDING_ORDER_ADDRESS,
-          value: payAmount,
-        })
+      const canBatch = await walletCanBatchCalls(client, address, supportsBatching)
+      if (canBatch) {
         setSimulating(false)
         setConfirm(null)
         sendCalls({
-          calls: [permitCall, payCall],
+          calls: cappedUsdcPayCalls({
+            spender: STANDING_ORDER_ADDRESS,
+            amount: payAmount,
+            pay: payCall,
+            needsApprove,
+          }),
           chainId: APP_CHAIN_ID,
           capabilities: attributionCapabilities(),
         })
         return
       }
-      if (supportsBatching) {
+      if (needsApprove) {
+        await client.simulateContract({
+          address: USDC_ADDRESS,
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [STANDING_ORDER_ADDRESS, payAmount],
+          account: address,
+          chain: appChain,
+        })
         setSimulating(false)
         setConfirm(null)
-        sendCalls({
-          calls: [payCall],
+        writeContract({
+          address: USDC_ADDRESS,
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [STANDING_ORDER_ADDRESS, payAmount],
           chainId: APP_CHAIN_ID,
-          capabilities: attributionCapabilities(),
         })
         return
       }
@@ -146,11 +152,7 @@ export function OrderPanel({ id }: { id: bigint }) {
         chain: appChain,
       })
     } catch (err) {
-      setSimError(
-        isUserRejected(err)
-          ? 'Signature cancelled. Coinbase shows “Unlimited” on ERC-20 approve — Due uses a permit for this amount only.'
-          : simulateErrorMessage(err),
-      )
+      setSimError(simulateErrorMessage(err))
       setSimulating(false)
       return
     }
@@ -243,7 +245,7 @@ export function OrderPanel({ id }: { id: bigint }) {
               setConfirm('pay')
             }}
           >
-            {needsApprove ? 'Sign and pay this period' : 'Pay this period'}
+            {needsApprove ? 'Approve and pay this period' : 'Pay this period'}
           </button>
           <button
             type="button"
@@ -279,10 +281,10 @@ export function OrderPanel({ id }: { id: bigint }) {
           { label: 'To', value: checksumAddress(data.payee) },
           { label: 'Amount', value: `${formatUsdc(data.amount)} USDC` },
           {
-            label: 'USDC permit',
+            label: 'USDC approval',
             value: needsApprove
-              ? `Sign ${formatUsdc(data.amount)} USDC for this period only — not unlimited`
-              : 'Already authorized',
+              ? `Approve ${formatUsdc(data.amount)} USDC for this period only`
+              : 'Already approved',
           },
         ]}
         pending={simulating}

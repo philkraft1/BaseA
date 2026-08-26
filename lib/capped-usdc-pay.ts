@@ -1,69 +1,43 @@
-import type { Address, Hex } from 'viem'
+import { encodeFunctionData, type Address, type Hex } from 'viem'
 import { USDC_ADDRESS } from '@/config/network'
-import {
-  encodeUsdcPermitCall,
-  usdcPermitAbi,
-  usdcPermitDeadlineSeconds,
-  usdcPermitDomain,
-  usdcPermitTypes,
-} from '@/lib/usdc-permit'
+import { erc20Abi } from '@/config/standing-order'
 
-type SignTypedDataAsync = (args: {
-  domain: typeof usdcPermitDomain
-  types: typeof usdcPermitTypes
-  primaryType: 'Permit'
-  message: {
-    owner: Address
-    spender: Address
-    value: bigint
-    nonce: bigint
-    deadline: bigint
-  }
-}) => Promise<Hex>
-
-type ReadNonceClient = {
-  readContract: (args: {
-    address: typeof USDC_ADDRESS
-    abi: typeof usdcPermitAbi
-    functionName: 'nonces'
-    args: [Address]
-  }) => Promise<bigint>
+type CodeClient = {
+  getCode: (args: { address: Address }) => Promise<Hex | undefined>
 }
 
-export async function permitCallForExactUsdc(args: {
-  client: ReadNonceClient
-  signTypedDataAsync: SignTypedDataAsync
-  owner: Address
-  spender: Address
-  value: bigint
-}) {
-  const nonce = await args.client.readContract({
-    address: USDC_ADDRESS,
-    abi: usdcPermitAbi,
-    functionName: 'nonces',
-    args: [args.owner],
-  })
-  const deadline = usdcPermitDeadlineSeconds()
-  const signature = await args.signTypedDataAsync({
-    domain: usdcPermitDomain,
-    types: usdcPermitTypes,
-    primaryType: 'Permit',
-    message: {
-      owner: args.owner,
-      spender: args.spender,
-      value: args.value,
-      nonce,
-      deadline,
-    },
-  })
+export function exactUsdcApproveCall(spender: Address, amount: bigint) {
   return {
     to: USDC_ADDRESS,
-    data: encodeUsdcPermitCall({
-      owner: args.owner,
-      spender: args.spender,
-      value: args.value,
-      deadline,
-      signature,
+    data: encodeFunctionData({
+      abi: erc20Abi,
+      functionName: 'approve',
+      args: [spender, amount],
     }),
+  }
+}
+
+export function cappedUsdcPayCalls(args: {
+  spender: Address
+  amount: bigint
+  pay: { to: Address; data: Hex }
+  needsApprove: boolean
+}) {
+  if (!args.needsApprove) return [args.pay]
+  return [exactUsdcApproveCall(args.spender, args.amount), args.pay]
+}
+
+/** Coinbase Smart Wallet and other contract accounts batch via EIP-5792. */
+export async function walletCanBatchCalls(
+  client: CodeClient,
+  address: Address,
+  supportsBatching: boolean,
+) {
+  if (supportsBatching) return true
+  try {
+    const code = await client.getCode({ address })
+    return Boolean(code && code !== '0x')
+  } catch {
+    return false
   }
 }
