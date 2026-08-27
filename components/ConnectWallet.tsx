@@ -32,7 +32,7 @@ export function ConnectWallet() {
       ? pendingConnector.uid
       : undefined
 
-  if (isReconnecting) {
+  if (isReconnecting && (isConnected || address)) {
     return <div className="text-sm text-zinc-500">Reconnecting…</div>
   }
 
