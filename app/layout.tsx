@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { cookieToInitialState } from 'wagmi'
 import { AppShell } from '@/components/AppShell'
+import { config } from '@/config/wagmi'
 import { Providers } from './providers'
 import './globals.css'
 
@@ -38,14 +41,21 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const headersList = await headers()
+  const initialState = cookieToInitialState(config, headersList.get('cookie'))
+
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
-        <Providers>
+        <Providers initialState={initialState}>
           <AppShell>{children}</AppShell>
         </Providers>
       </body>

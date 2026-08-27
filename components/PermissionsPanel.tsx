@@ -22,7 +22,7 @@ import { getDueProvider } from '@/lib/base-account'
 import { formatUsdc, shortAddress } from '@/lib/format'
 
 export function PermissionsPanel() {
-  const { address, isConnected } = useAccount()
+  const { isConnected, connector } = useAccount()
   const chainId = useChainId()
   const { switchChain, isPending: isSwitching } = useSwitchChain()
   const { supportsBatching } = useWalletCapabilities()
@@ -80,7 +80,10 @@ export function PermissionsPanel() {
     if (!permission) return
     setRevokeError(null)
     try {
-      await requestRevoke({ provider: getDueProvider(), permission })
+      await requestRevoke({
+        provider: await getDueProvider(connector),
+        permission,
+      })
       allPerms.refetch()
       duePerms.refetch()
     } catch (err) {

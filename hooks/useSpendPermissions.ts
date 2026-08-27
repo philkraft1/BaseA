@@ -9,14 +9,14 @@ import { getDueProvider } from '@/lib/base-account'
 type SpendPermission = Awaited<ReturnType<typeof fetchPermissions>>[number]
 
 export function useSpendPermissions(spender?: `0x${string}`) {
-  const { address } = useAccount()
+  const { address, connector } = useAccount()
 
   return useQuery({
-    queryKey: ['spend-permissions', address, spender, APP_CHAIN_ID],
+    queryKey: ['spend-permissions', address, spender, connector?.uid, APP_CHAIN_ID],
     enabled: Boolean(address),
     queryFn: async (): Promise<SpendPermission[]> => {
       if (!address) return []
-      const provider = getDueProvider()
+      const provider = await getDueProvider(connector)
 
       if (!spender) {
         try {
