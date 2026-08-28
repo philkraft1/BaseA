@@ -13,7 +13,11 @@ export default function PayIndexPage() {
         <Link href="/new" className="underline">
           Create a pay request
         </Link>
-        .
+        . Sending USDC yourself? Use{' '}
+        <Link href="/new" className="underline">
+          Send now
+        </Link>{' '}
+        on the New page (Base Account <code>pay()</code>).
       </p>
     </div>
   )

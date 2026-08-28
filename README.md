@@ -19,7 +19,7 @@ Base App is full of swaps, launches, and merchant checkout. Nothing else is:
 
 1. Connect Base Account or an injected wallet.
 2. **Inbox** — incoming and outgoing standing orders and pay requests, plus who can still spend.
-3. **New** — create a standing order to a basename, or a one-time USDC request (open or named payer).
+3. **New** — create a standing order to a basename, a one-time USDC request (open or named payer), or **Send now** (one-tap USDC via Base Account `pay()`).
 4. **`/due/{id}`** — shareable standing-order link; payer settles the current period.
 5. **`/pay/{id}`** — shareable one-time request; payer approves USDC and pays.
 6. **Permissions** — list spend permissions + discovered USDC allowances; revoke.
@@ -157,4 +157,4 @@ Do not wash volume. Talent does not pay for a Sepolia-only tutorial.
 
 ## Stack
 
-Next.js · wagmi · viem · Base Account · Foundry · TanStack Query · CDP subscriptions
+Next.js · wagmi · viem · Base Account SDK (`pay`, `subscribe`) · Foundry · TanStack Query · CDP subscriptions
