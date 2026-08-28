@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import { CreateOrderForm } from '@/components/CreateOrderForm'
 import { CreatePayRequestForm } from '@/components/CreatePayRequestForm'
+import { SendUsdcForm } from '@/components/SendUsdcForm'
 
 const tabs = [
   { id: 'order' as const, label: 'Standing order' },
   { id: 'request' as const, label: 'One-time request' },
+  { id: 'send' as const, label: 'Send now' },
 ]
 
 export function NewFlow() {
@@ -33,7 +35,13 @@ export function NewFlow() {
           )
         })}
       </div>
-      {kind === 'order' ? <CreateOrderForm /> : <CreatePayRequestForm />}
+      {kind === 'order' ? (
+        <CreateOrderForm />
+      ) : kind === 'request' ? (
+        <CreatePayRequestForm />
+      ) : (
+        <SendUsdcForm />
+      )}
     </div>
   )
 }
