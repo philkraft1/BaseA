@@ -111,6 +111,12 @@ cd contracts && forge install foundry-rs/forge-std --no-git && cd ..
 npm run dev
 ```
 
+## Cursor agents (Base MCP)
+
+IDE: [`.cursor/mcp.json`](.cursor/mcp.json) already registers `https://mcp.base.org`. Restart Cursor and connect under **Settings → MCP**. Install notes: [docs.base.org/ai-agents/quickstart](https://docs.base.org/ai-agents/quickstart).
+
+Cloud Agents do not load project `mcp.json`. Add the same HTTP server in the [Cloud Agents MCP dropdown](https://cursor.com/agents) and complete Base Account OAuth. Then a prompt like `Show me my wallets` can run against the connected Base Account. Every send, swap, or sign still needs a Base Account approval.
+
 ## Base.dev listing (paste)
 
 Register / update the project at [base.dev](https://www.base.dev). Discovery no longer uses `farcaster.json`.
